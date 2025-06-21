@@ -1,5 +1,5 @@
 <?php
-// app/Models/User.php
+// app/Models/User.php (tambahan method jika belum ada)
 
 namespace App\Models;
 

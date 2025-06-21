@@ -6,8 +6,8 @@ namespace App\Providers;
 use App\Services\ActivityLogService;
 use App\Services\BookingService;
 use App\Services\NotificationService;
+use App\Models\Notification;
 use Illuminate\Support\ServiceProvider;
-use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,19 +21,15 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        config(['app.locale' => 'id']);
-        Carbon::setLocale('id');
-
         Paginator::useBootstrap();
-
+        
         // Global view composers
         view()->composer('*', function ($view) {
             if (auth()->check()) {
-                $unreadNotifications = auth()->user()
-                    ->notifications()
-                    ->unread()
+                $unreadNotifications = Notification::where('user_id', auth()->id()) // Perbaiki method call
+                    ->where('is_read', false)
                     ->count();
-
+                    
                 $view->with('unreadNotifications', $unreadNotifications);
             }
         });

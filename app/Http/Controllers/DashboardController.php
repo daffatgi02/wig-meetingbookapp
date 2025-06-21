@@ -54,16 +54,17 @@ class DashboardController extends Controller
         // Data untuk user yang login
         if ($user) {
             $userStats = [
-                'myBookings' => $user->bookings()
+                'myBookings' => Booking::where('user_id', $user->id) // Perbaiki method call
                                    ->where('booking_date', '>=', $today)
                                    ->whereIn('status', ['pending', 'approved', 'ongoing'])
+                                   ->with(['room'])
                                    ->orderBy('booking_date')
                                    ->orderBy('start_time')
                                    ->limit(5)
                                    ->get(),
-                'totalBookings' => $user->bookings()->count(),
-                'pendingBookings' => $user->bookings()->where('status', 'pending')->count(),
-                'approvedBookings' => $user->bookings()->where('status', 'approved')->count(),
+                'totalBookings' => Booking::where('user_id', $user->id)->count(),
+                'pendingBookings' => Booking::where('user_id', $user->id)->where('status', 'pending')->count(),
+                'approvedBookings' => Booking::where('user_id', $user->id)->where('status', 'approved')->count(),
             ];
 
             // Data tambahan untuk admin
@@ -127,11 +128,11 @@ class DashboardController extends Controller
         }
 
         $stats = [
-            'total' => $user->bookings()->count(),
-            'pending' => $user->bookings()->where('status', 'pending')->count(),
-            'approved' => $user->bookings()->where('status', 'approved')->count(),
-            'completed' => $user->bookings()->where('status', 'completed')->count(),
-            'cancelled' => $user->bookings()->where('status', 'cancelled')->count(),
+            'total' => Booking::where('user_id', $user->id)->count(),
+            'pending' => Booking::where('user_id', $user->id)->where('status', 'pending')->count(),
+            'approved' => Booking::where('user_id', $user->id)->where('status', 'approved')->count(),
+            'completed' => Booking::where('user_id', $user->id)->where('status', 'completed')->count(),
+            'cancelled' => Booking::where('user_id', $user->id)->where('status', 'cancelled')->count(),
         ];
 
         if ($user->isAdmin()) {

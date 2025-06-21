@@ -47,6 +47,12 @@ class CalendarController extends Controller
             $startDateTime = Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $booking->start_time);
             $endDateTime = Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $booking->end_time);
 
+            $user = auth()->user();
+            $canEdit = $user && ($user->role === 'admin' || // Perbaiki method call isAdmin()
+                                ($user->id === $booking->user_id && $booking->isEditable()));
+            $canCancel = $user && ($user->role === 'admin' || // Perbaiki method call isAdmin()
+                                  ($user->id === $booking->user_id && $booking->isCancellable()));
+
             return [
                 'id' => $booking->id,
                 'title' => $booking->title . ' - ' . $booking->room->name,
@@ -65,10 +71,8 @@ class CalendarController extends Controller
                     'participant_count' => $booking->participant_count,
                     'purpose' => $booking->purpose,
                     'description' => $booking->description,
-                    'can_edit' => auth()->check() && (auth()->user()->isAdmin() || 
-                                 (auth()->id() === $booking->user_id && $booking->isEditable())),
-                    'can_cancel' => auth()->check() && (auth()->user()->isAdmin() || 
-                                   (auth()->id() === $booking->user_id && $booking->isCancellable())),
+                    'can_edit' => $canEdit,
+                    'can_cancel' => $canCancel,
                 ],
             ];
         });
@@ -154,9 +158,10 @@ class CalendarController extends Controller
         }
 
         $booking = Booking::findOrFail($request->booking_id);
+        $user = auth()->user();
 
         // Cek permission
-        if (!auth()->user()->isAdmin() && auth()->id() !== $booking->user_id) {
+        if ($user->role !== 'admin' && $user->id !== $booking->user_id) { // Perbaiki method call isAdmin()
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
