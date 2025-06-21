@@ -4,7 +4,7 @@
         <!-- Brand -->
         <a class="navbar-brand d-flex align-items-center" href="{{ route('dashboard') }}">
             <i class="fas fa-calendar-check me-2"></i>
-            <span>{{ config('app.name', 'Meeting Room Booking') }}</span>
+            <span>{{ config('app.name', 'PT WIG - Booking Room Meeting') }}</span>
         </a>
 
         <!-- Mobile toggle -->

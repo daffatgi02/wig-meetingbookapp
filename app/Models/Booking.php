@@ -31,8 +31,6 @@ class Booking extends Model
 
     protected $casts = [
         'booking_date' => 'date',
-        'start_time' => 'datetime:H:i',
-        'end_time' => 'datetime:H:i',
         'approved_at' => 'datetime',
         'requires_reapproval' => 'boolean',
     ];
@@ -94,19 +92,18 @@ class Booking extends Model
     {
         $now = Carbon::now();
         $bookingDateTime = Carbon::parse($this->booking_date->format('Y-m-d') . ' ' . $this->start_time);
-        
-        return $bookingDateTime->isFuture() && 
-               in_array($this->status, ['pending', 'approved']) &&
-               !$this->isOngoing();
-    }
 
+        return $bookingDateTime->isFuture() &&
+            in_array($this->status, ['pending', 'approved']) &&
+            !$this->isOngoing();
+    }
     public function isCancellable()
     {
         $now = Carbon::now();
         $bookingDateTime = Carbon::parse($this->booking_date->format('Y-m-d') . ' ' . $this->start_time);
-        
-        return $bookingDateTime->isFuture() && 
-               !in_array($this->status, ['cancelled', 'completed']);
+
+        return $bookingDateTime->isFuture() &&
+            !in_array($this->status, ['cancelled', 'completed']);
     }
 
     public function isOngoing()
@@ -115,15 +112,23 @@ class Booking extends Model
         $bookingDate = $this->booking_date->format('Y-m-d');
         $startDateTime = Carbon::parse($bookingDate . ' ' . $this->start_time);
         $endDateTime = Carbon::parse($bookingDate . ' ' . $this->end_time);
-        
+
         return $now->between($startDateTime, $endDateTime) && $this->status === 'approved';
+    }
+
+    public function getStartDateTimeAttribute()
+    {
+        return Carbon::parse($this->booking_date->format('Y-m-d') . ' ' . $this->start_time);
+    }
+
+    public function getEndDateTimeAttribute()
+    {
+        return Carbon::parse($this->booking_date->format('Y-m-d') . ' ' . $this->end_time);
     }
 
     public function getDurationInMinutes()
     {
-        $start = Carbon::parse($this->start_time);
-        $end = Carbon::parse($this->end_time);
-        return $start->diffInMinutes($end);
+        return $this->start_date_time->diffInMinutes($this->end_date_time);
     }
 
     public function getStatusColor()
@@ -161,13 +166,10 @@ class Booking extends Model
     {
         if ($this->status === 'approved') {
             $now = Carbon::now();
-            $bookingDate = $this->booking_date->format('Y-m-d');
-            $startDateTime = Carbon::parse($bookingDate . ' ' . $this->start_time);
-            $endDateTime = Carbon::parse($bookingDate . ' ' . $this->end_time);
 
-            if ($now->between($startDateTime, $endDateTime)) {
+            if ($now->between($this->start_date_time, $this->end_date_time)) {
                 $this->update(['status' => 'ongoing']);
-            } elseif ($now->isAfter($endDateTime)) {
+            } elseif ($now->isAfter($this->end_date_time)) {
                 $this->update(['status' => 'completed']);
             }
         }

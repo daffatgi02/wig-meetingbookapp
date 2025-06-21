@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Artisan;
 class SetupMeetingRoomApp extends Command
 {
     protected $signature = 'meeting-room:setup';
-    protected $description = 'Setup Meeting Room Booking Application';
+    protected $description = 'Setup PT WIG - Booking Room Meeting Application';
 
     public function handle()
     {
-        $this->info('Setting up Meeting Room Booking Application...');
+        $this->info('Setting up PT WIG - Booking Room Meeting Application...');
         
         // Run migrations
         $this->info('Running migrations...');

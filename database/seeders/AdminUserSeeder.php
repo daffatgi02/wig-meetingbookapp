@@ -14,7 +14,7 @@ class AdminUserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@meetingroom.local'],
             [
-                'name' => 'Administrator',
+                'name' => 'HCGA',
                 'email' => 'admin@meetingroom.local',
                 'password' => Hash::make('admin123'),
                 'role' => 'admin',
@@ -26,7 +26,7 @@ class AdminUserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'user@meetingroom.local'],
             [
-                'name' => 'Test User',
+                'name' => 'Daffa Fakhuddin Arrozy',
                 'email' => 'user@meetingroom.local',
                 'password' => Hash::make('user123'),
                 'role' => 'user',

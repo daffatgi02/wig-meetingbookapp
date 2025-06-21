@@ -34,8 +34,8 @@ class CalendarController extends Controller
         ]);
 
         $query = Booking::with(['room', 'user'])
-                       ->whereBetween('booking_date', [$request->start, $request->end])
-                       ->whereIn('status', ['pending', 'approved', 'ongoing', 'completed']);
+            ->whereBetween('booking_date', [$request->start, $request->end])
+            ->whereIn('status', ['pending', 'approved', 'ongoing', 'completed']);
 
         if ($request->filled('room_id')) {
             $query->where('room_id', $request->room_id);
@@ -44,14 +44,16 @@ class CalendarController extends Controller
         $bookings = $query->get();
 
         $events = $bookings->map(function ($booking) {
-            $startDateTime = Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $booking->start_time);
-            $endDateTime = Carbon::parse($booking->booking_date->format('Y-m-d') . ' ' . $booking->end_time);
+            // ✅ Gunakan helper attributes
+            $startDateTime = $booking->start_date_time;
+            $endDateTime = $booking->end_date_time;
 
             $user = auth()->user();
-            $canEdit = $user && ($user->role === 'admin' || // Perbaiki method call isAdmin()
-                                ($user->id === $booking->user_id && $booking->isEditable()));
-            $canCancel = $user && ($user->role === 'admin' || // Perbaiki method call isAdmin()
-                                  ($user->id === $booking->user_id && $booking->isCancellable()));
+            // ✅ Gunakan isAdmin() method
+            $canEdit = $user && ($user->isAdmin() ||
+                ($user->id === $booking->user_id && $booking->isEditable()));
+            $canCancel = $user && ($user->isAdmin() ||
+                ($user->id === $booking->user_id && $booking->isCancellable()));
 
             return [
                 'id' => $booking->id,
@@ -93,7 +95,7 @@ class CalendarController extends Controller
         $duration = $request->duration ?? 60; // default 1 jam
 
         $room = Room::findOrFail($roomId);
-        
+
         // Ambil jam operasional dari setting
         $operatingStart = \App\Models\Setting::get('operating_hours_start', '08:00');
         $operatingEnd = \App\Models\Setting::get('operating_hours_end', '18:00');
@@ -103,22 +105,22 @@ class CalendarController extends Controller
 
         // Ambil booking yang sudah ada
         $existingBookings = $room->bookings()
-                                ->where('booking_date', $date)
-                                ->whereIn('status', ['approved', 'ongoing', 'pending'])
-                                ->orderBy('start_time')
-                                ->get();
+            ->where('booking_date', $date)
+            ->whereIn('status', ['approved', 'ongoing', 'pending'])
+            ->orderBy('start_time')
+            ->get();
 
         $availableSlots = [];
         $currentTime = $startTime->copy();
 
         while ($currentTime->copy()->addMinutes($duration)->lte($endTime)) {
             $slotEnd = $currentTime->copy()->addMinutes($duration);
-            
+
             $isAvailable = true;
             foreach ($existingBookings as $booking) {
                 $bookingStart = Carbon::parse($date . ' ' . $booking->start_time);
                 $bookingEnd = Carbon::parse($date . ' ' . $booking->end_time);
-                
+
                 // Cek overlap
                 if ($currentTime->lt($bookingEnd) && $slotEnd->gt($bookingStart)) {
                     $isAvailable = false;
@@ -161,7 +163,7 @@ class CalendarController extends Controller
         $user = auth()->user();
 
         // Cek permission
-        if ($user->role !== 'admin' && $user->id !== $booking->user_id) { // Perbaiki method call isAdmin()
+        if (!$user->isAdmin() && $user->id !== $booking->user_id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -196,7 +198,6 @@ class CalendarController extends Controller
                 'booking' => $updatedBooking,
                 'message' => 'Booking berhasil dipindahkan'
             ]);
-
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

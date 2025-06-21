@@ -136,45 +136,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Quick Stats -->
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white">
-                    <h6 class="mb-0">
-                        <i class="fas fa-chart-bar me-2 text-primary"></i>
-                        Quick Stats
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <h4 class="text-primary mb-0">{{ $rooms->where('is_active', true)->count() }}</h4>
-                                <small class="text-muted">Available Rooms</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <h4 class="text-success mb-0">{{ $upcomingBookings->count() }}</h4>
-                            <small class="text-muted">Upcoming Sessions</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Call to Action -->
-            <div class="card border-primary">
-                <div class="card-body text-center">
-                    <i class="fas fa-calendar-plus text-primary mb-3" style="font-size: 2.5rem;"></i>
-                    <h6 class="mb-2">Want to book a room?</h6>
-                    <p class="text-muted small mb-3">
-                        Login to your account to start booking meeting rooms
-                    </p>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
-                        <i class="fas fa-sign-in-alt me-2"></i>
-                        Login to Book
-                    </button>
-                </div>
-            </div>
         </div>
 
         <!-- Upcoming Bookings (Next 7 Days) -->
