@@ -12,10 +12,10 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('type'); // booking_approved, booking_rejected, booking_changed, etc.
+            $table->string('type');
             $table->string('title');
             $table->text('message');
-            $table->json('data')->nullable(); // Data tambahan seperti booking_id, dll
+            $table->text('data')->nullable(); // Ganti dari json ke text
             $table->boolean('is_read')->default(false);
             $table->timestamp('read_at')->nullable();
             $table->timestamps();

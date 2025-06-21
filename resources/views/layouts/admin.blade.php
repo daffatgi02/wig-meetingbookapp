@@ -1,4 +1,4 @@
-{{-- resources/views/layouts/app.blade.php --}}
+{{-- resources/views/layouts/admin.blade.php --}}
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Meeting Room Booking') }} - @yield('title', 'Dashboard')</title>
+    <title>{{ config('app.name', 'Meeting Room Booking') }} - Admin @yield('title', 'Dashboard')</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -35,6 +35,7 @@
             --warning: #f59e0b;
             --danger: #ef4444;
             --info: #3b82f6;
+            --sidebar-width: 280px;
         }
 
         body {
@@ -58,16 +59,60 @@
             border-color: var(--secondary-red);
         }
 
-        .text-primary {
-            color: var(--primary-red) !important;
+        .text-primary { color: var(--primary-red) !important; }
+        .bg-primary { background-color: var(--primary-red) !important; }
+
+        .admin-wrapper {
+            display: flex;
+            min-height: calc(100vh - 80px);
         }
 
-        .bg-primary {
-            background-color: var(--primary-red) !important;
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            background-color: white;
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            position: fixed;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            z-index: 1000;
         }
 
-        .border-primary {
-            border-color: var(--primary-red) !important;
+        .admin-main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            border-radius: 0;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background-color: var(--light-red);
+            color: var(--primary-red);
+            border-right: 3px solid var(--primary-red);
+        }
+
+        .sidebar-menu i {
+            width: 20px;
+            margin-right: 0.75rem;
         }
 
         .card {
@@ -76,20 +121,11 @@
             border-radius: 12px;
         }
 
-        .card-header {
-            background-color: white;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            padding: 1.25rem;
-        }
-
         .navbar {
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             background-color: white !important;
-        }
-
-        .dropdown-toggle::after {
-            margin-left: 0.5rem;
+            position: relative;
+            z-index: 1100;
         }
 
         .notification-badge {
@@ -118,20 +154,34 @@
         .status-rejected { background-color: #fee2e2; color: #991b1b; }
         .status-cancelled { background-color: #f3f4f6; color: #374151; }
 
-        .main-content {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-            min-height: calc(100vh - 80px);
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                padding-top: 1rem;
-                padding-bottom: 1rem;
+        /* Mobile responsiveness */
+        @media (max-width: 992px) {
+            .admin-sidebar {
+                margin-left: -280px;
+                transition: margin-left 0.3s ease;
             }
-            
-            .card {
-                margin-bottom: 1rem;
+
+            .admin-sidebar.show {
+                margin-left: 0;
+            }
+
+            .admin-main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .sidebar-toggle {
+                position: fixed;
+                top: 100px;
+                left: 10px;
+                z-index: 1200;
+                background-color: var(--primary-red);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             }
         }
     </style>
@@ -142,12 +192,19 @@
     <div id="app">
         @include('components.navbar')
 
-        <main class="main-content">
-            <div class="container-fluid">
+        <div class="admin-wrapper">
+            @include('components.sidebar')
+
+            <main class="admin-main">
                 @include('components.alerts')
                 @yield('content')
-            </div>
-        </main>
+            </main>
+        </div>
+
+        <!-- Mobile sidebar toggle -->
+        <button class="sidebar-toggle d-lg-none" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
     </div>
 
     <!-- Bootstrap JS -->
@@ -159,27 +216,20 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
 
-    <!-- Global JS -->
     <script>
-        // CSRF Token untuk AJAX
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
-        // Toast notification function
         function showToast(type, message) {
             const Toast = Swal.mixin({
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
                 timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer)
-                    toast.addEventListener('mouseleave', Swal.resumeTimer)
-                }
+                timerProgressBar: true
             });
 
             Toast.fire({
@@ -188,7 +238,6 @@
             });
         }
 
-        // Global confirmation dialog
         function confirmAction(title, text, confirmText = 'Ya, Lanjutkan!') {
             return Swal.fire({
                 title: title,
@@ -202,8 +251,13 @@
             });
         }
 
-        // Auto hide alerts
+        // Mobile sidebar toggle
         $(document).ready(function() {
+            $('#sidebarToggle').click(function() {
+                $('.admin-sidebar').toggleClass('show');
+            });
+
+            // Auto hide alerts
             setTimeout(function() {
                 $('.alert').fadeOut('slow');
             }, 5000);

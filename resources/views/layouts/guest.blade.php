@@ -1,4 +1,4 @@
-{{-- resources/views/layouts/app.blade.php --}}
+{{-- resources/views/layouts/guest.blade.php --}}
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -21,7 +21,7 @@
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css">
 
-    <!-- Custom CSS -->
+    <!-- Custom CSS (sama seperti app.blade.php) -->
     <style>
         :root {
             --primary-red: #dc2626;
@@ -66,42 +66,15 @@
             background-color: var(--primary-red) !important;
         }
 
-        .border-primary {
-            border-color: var(--primary-red) !important;
-        }
-
         .card {
             border: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             border-radius: 12px;
         }
 
-        .card-header {
-            background-color: white;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            padding: 1.25rem;
-        }
-
         .navbar {
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             background-color: white !important;
-        }
-
-        .dropdown-toggle::after {
-            margin-left: 0.5rem;
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--danger);
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
         }
 
         .status-badge {
@@ -115,24 +88,19 @@
         .status-approved { background-color: var(--light-red); color: var(--dark-red); }
         .status-ongoing { background-color: #dbeafe; color: #1e40af; }
         .status-completed { background-color: #d1fae5; color: #065f46; }
-        .status-rejected { background-color: #fee2e2; color: #991b1b; }
-        .status-cancelled { background-color: #f3f4f6; color: #374151; }
+
+        .guest-banner {
+            background: linear-gradient(135deg, var(--primary-red), var(--secondary-red));
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
 
         .main-content {
             padding-top: 2rem;
             padding-bottom: 2rem;
             min-height: calc(100vh - 80px);
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                padding-top: 1rem;
-                padding-bottom: 1rem;
-            }
-            
-            .card {
-                margin-bottom: 1rem;
-            }
         }
     </style>
 
@@ -145,10 +113,26 @@
         <main class="main-content">
             <div class="container-fluid">
                 @include('components.alerts')
+                
+                <!-- Guest Banner -->
+                <div class="guest-banner text-center">
+                    <h4 class="mb-2">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Sistem Pemesanan Ruang Meeting
+                    </h4>
+                    <p class="mb-3">Lihat ketersediaan ruangan dan jadwal meeting yang sedang berlangsung</p>
+                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <i class="fas fa-sign-in-alt me-1"></i>
+                        Login untuk Booking
+                    </button>
+                </div>
+
                 @yield('content')
             </div>
         </main>
     </div>
+
+    @include('components.modal-login')
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -159,27 +143,20 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
 
-    <!-- Global JS -->
     <script>
-        // CSRF Token untuk AJAX
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
-        // Toast notification function
         function showToast(type, message) {
             const Toast = Swal.mixin({
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
                 timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer)
-                    toast.addEventListener('mouseleave', Swal.resumeTimer)
-                }
+                timerProgressBar: true
             });
 
             Toast.fire({
@@ -188,21 +165,12 @@
             });
         }
 
-        // Global confirmation dialog
-        function confirmAction(title, text, confirmText = 'Ya, Lanjutkan!') {
-            return Swal.fire({
-                title: title,
-                text: text,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: confirmText,
-                cancelButtonText: 'Batal'
-            });
+        // Show login modal when trying to book
+        function requireLogin() {
+            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+            loginModal.show();
         }
 
-        // Auto hide alerts
         $(document).ready(function() {
             setTimeout(function() {
                 $('.alert').fadeOut('slow');
